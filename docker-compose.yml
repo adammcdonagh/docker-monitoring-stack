@@ -72,7 +72,7 @@ services:
   #   - /opt/sensu/3:/var/lib/sensu/sensu-backend/etcd
   agent1:
     image: sensu/sensu:latest
-    command: sensu-agent start --backend-url ws://reverseproxy:8081 --subscriptions unix,webservers --log-level warn --keepalive-interval 5 --keepalive-timeout 10
+    command: sensu-agent start --backend-url ws://reverseproxy:8081 --subscriptions proxy,unix,webservers --log-level warn --keepalive-interval 5 --keepalive-timeout 10
     hostname: agent1
     restart: always
     depends_on:
