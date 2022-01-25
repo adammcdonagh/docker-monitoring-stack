@@ -2,7 +2,7 @@ version: '3'
 services:
   backend:
     image: sensu/sensu:latest
-    command: sensu-backend start --state-dir /var/lib/sensu/sensu-backend/etcd
+    command: sensu-backend start --state-dir /var/lib/sensu/sensu-backend/etcd --log-level debug
     # command: sensu-backend start --etcd-listen-client-urls http://0.0.0.0:2379 --etcd-name backend1 --etcd-advertise-client-urls http://backend1:2379 --etcd-initial-cluster backend1=http://backend1:2380,backend2=http://backend2:2380,backend3=http://backend3:2380 --etcd-initial-cluster-state new --etcd-initial-advertise-peer-urls http://backend1:2380 --state-dir /var/lib/sensu/sensu-backend/etcd --etcd-listen-peer-urls http://0.0.0.0:2380 --log-level debug --debug
     environment:
     - SENSU_BACKEND_CLUSTER_ADMIN_USERNAME=admin
