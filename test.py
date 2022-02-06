@@ -12,7 +12,7 @@ if __name__ == "__main__":
     someVariable = "sdsd"
     colour = "red"
     some_file = None
-    print("Everything passed")#asdasda
+    print("Everything passed")  # asdasda
 
     lookup_table = {
         "key1": "value",
