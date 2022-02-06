@@ -8,7 +8,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python 3.9
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v2
         with:
           python-version: 3.9
       - name: Install Black
@@ -26,9 +26,6 @@ jobs:
           git commit -am "fixup: Format Python code with Black"
           git push
       - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-        with:
-          python-version: "3.9"
       - name: Run flake8
         uses: julianwachholz/flake8-action@v2
         with:
