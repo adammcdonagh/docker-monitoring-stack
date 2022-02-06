@@ -27,4 +27,3 @@ if __name__ == "__main__":
 # flake8-commas
 # flake8-use-fstring
 #
-#
