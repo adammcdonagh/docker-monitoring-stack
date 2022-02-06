@@ -3,7 +3,7 @@ name: Lint
 on: [push]
 
 jobs:
-  lint:
+  blacken:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -25,7 +25,13 @@ jobs:
           git checkout $GITHUB_HEAD_REF
           git commit -am "fixup: Format Python code with Black"
           git push
+  lint:
+    runs-on: ubuntu-latest
+    needs: blacken
+    steps:
       - uses: actions/checkout@v2
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v2
       - name: Run flake8
         uses: julianwachholz/flake8-action@v2
         with:
