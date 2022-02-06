@@ -1,6 +1,6 @@
 name: Lint
 
-on: [push, pull_request]
+on: [push]
 
 jobs:
   lint:
@@ -10,3 +10,13 @@ jobs:
       - uses: psf/black@stable
         with:
           options: "--diff --check --verbose"
+      - name: If needed, commit black changes to the pull request
+        if: failure()
+        run: |
+          black .
+          git config --global user.name 'autoblack'
+          git config --global user.email 'adammcdonagh@users.noreply.github.com'
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY
+          git checkout $GITHUB_HEAD_REF
+          git commit -am "fixup: Format Python code with Black"
+          git push
