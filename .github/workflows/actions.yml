@@ -18,7 +18,7 @@ jobs:
         uses: julianwachholz/flake8-action@v2
         with:
           checkName: "Python Lint"
-          path: "*.py"
+          path: "./"
           plugins: flake8-bugbear pep8-naming flake8-commas flake8-use-fstring
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
