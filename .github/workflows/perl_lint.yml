@@ -6,6 +6,12 @@ on:
       - "**.pl"
 
 jobs:
+  perlcritic:
+    uses: Difegue/action-perlcritic@master
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    with:
+      args: --brutal **/*.pl
   perltidy:
     runs-on: ubuntu-latest
     container:
