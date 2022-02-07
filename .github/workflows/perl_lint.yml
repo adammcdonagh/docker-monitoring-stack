@@ -21,7 +21,6 @@ jobs:
       - name: Run perltidy
         shell: bash
         run: |
-          export GLOBIGNORE=t/mojo/lib/Mojo/LoaderException.pm:t/mojo/lib/Mojo/LoaderTestException/A.pm:t/mojolicious/lib/MojoliciousTest/SyntaxError.pm
           shopt -s extglob globstar nullglob
           perltidy --pro=.../.perltidyrc -b -bext='/' **/*.p[lm] **/*.t && git diff --exit-code
   # perl_lint:
