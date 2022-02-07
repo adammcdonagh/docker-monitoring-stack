@@ -14,8 +14,8 @@ jobs:
         uses: shogo82148/actions-setup-perl@v1
         with:
           perl-version: '5.34'
-          install-modules-with: cpanm
-          install-modules-args: --with-develop --with-configure Task::PerlCriticAllPolicies
+      - name: Install perlcritic
+        run: cpanm Task::PerlCriticAllPolicies
       - name: Run perlcritic
         run: perlcritic . --verbose 11
         
