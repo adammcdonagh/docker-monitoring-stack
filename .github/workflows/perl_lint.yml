@@ -6,16 +6,34 @@ on:
       - "**.pl"
 
 jobs:
-  perl_lint:
+  perltidy:
     runs-on: ubuntu-latest
+    container:
+      image: perl:5.32
     steps:
       - uses: actions/checkout@v2
-      - name: Set up Perl 
-        uses: shogo82148/actions-setup-perl@v1
-        with:
-          perl-version: '5.34'
-      - name: Install perlcritic
-        run: cpanm Task::PerlCriticAllPolicies
-      - name: Run perlcritic
-        run: perlcritic . --verbose 11
+      - name: perl -V
+        run: perl -V
+      - name: Install dependencies
+        run: cpanm -n Perl::Tidy
+      - name: perltidy --version
+        run: perltidy --version
+      - name: Run perltidy
+        shell: bash
+        run: |
+          export GLOBIGNORE=t/mojo/lib/Mojo/LoaderException.pm:t/mojo/lib/Mojo/LoaderTestException/A.pm:t/mojolicious/lib/MojoliciousTest/SyntaxError.pm
+          shopt -s extglob globstar nullglob
+          perltidy --pro=.../.perltidyrc -b -bext='/' **/*.p[lm] **/*.t && git diff --exit-code
+  # perl_lint:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - name: Set up Perl 
+  #       uses: shogo82148/actions-setup-perl@v1
+  #       with:
+  #         perl-version: '5.34'
+  #     - name: Install perlcritic
+  #       run: cpanm Task::PerlCriticAllPolicies
+  #     - name: Run perlcritic
+  #       run: perlcritic . --verbose 11
         
