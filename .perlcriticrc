@@ -1,0 +1,11 @@
+[TestingAndDebugging::RequireUseWarnings]
+severity = 1
+
+[NamingConventions::Capitalization]
+severity = 5
+
+[Compatibility::ProhibitThreeArgumentOpen]
+severity = 1
+
+[InputOutput::ProhibitTwoArgOpen]
+severity = 1
