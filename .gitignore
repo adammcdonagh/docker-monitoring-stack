@@ -1,3 +1,9 @@
 volumes/[123]
 volumes/es
 secrets
+.venv
+sensu-binary
+sensu-agent
+sensuctl
+event.json
+/lambda-netcool-forwarder/target/

@@ -1,0 +1,32 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Python: Current File",
+      "type": "python",
+      "request": "launch",
+      "program": "${file}",
+      "args": ["-c", "agents.json"],
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Python: Sensu Handler",
+      "type": "python",
+      "request": "launch",
+      "program": "${file}",
+      "args": [
+        "--queue-name",
+        "sensu-netcool.fifo",
+        "--proxy",
+        "ss-prod-coreinfra-nlb-4c456ab106f6d6f9.elb.eu-west-1.amazonaws.com:9928",
+        "-v",
+        "<",
+        "event.json"
+      ],
+      "console": "integratedTerminal"
+    }
+  ]
+}

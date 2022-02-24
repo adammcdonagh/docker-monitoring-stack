@@ -20,6 +20,11 @@ services:
     #   - "13000:3000" # Web UI
     volumes:
       - ./volumes/1:/var/lib/sensu/sensu-backend/etcd
+      - ./volumes/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt
+    logging:
+      options:
+        max-size: "1m"
+        max-file: "1"
   db:
     image: postgres
     restart: always
@@ -71,8 +76,8 @@ services:
   #   volumes:
   #   - /opt/sensu/3:/var/lib/sensu/sensu-backend/etcd
   agent1:
-    image: sensu/sensu:latest
-    command: sensu-agent start --backend-url ws://reverseproxy:8081 --subscriptions proxy,unix,webservers --log-level warn --keepalive-interval 5 --keepalive-timeout 10
+    image: sensu/sensu-rhel:latest
+    command: sensu-agent start --backend-url ws://reverseproxy:8081 --subscriptions proxy,unix,webservers --log-level warn --keepalive-interval 5 --keepalive-warning-timeout 10 --socket-host agent1
     hostname: agent1
     restart: always
     depends_on:
@@ -81,27 +86,34 @@ services:
       # - backend3
     volumes:
       - ./volumes/agent-shared-scripts:/opt/sensu/plugins
+      - ./volumes/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt
   agent2:
     image: sensu/sensu:latest
-    command: sensu-agent start --backend-url ws://reverseproxy:8081  --subscriptions unix,webservers --log-level warn --keepalive-interval 5 --keepalive-timeout 10
+    command: sensu-agent start --backend-url ws://reverseproxy:8081  --subscriptions unix,webservers --log-level warn --keepalive-interval 5 --keepalive-warning-timeout 10
     hostname: agent2
     restart: always
     depends_on:
       - backend
       # - backend2
       # - backend3
+    volumes:
+      - ./volumes/agent-shared-scripts:/opt/sensu/plugins
+      - ./volumes/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt
   agent3:
    image: sensu/sensu:latest
-   command: sensu-agent start --backend-url ws://reverseproxy:8081 --subscriptions unix,appservers --log-level warn --keepalive-interval 5 --keepalive-timeout 10
+   command: sensu-agent start --backend-url ws://reverseproxy:8081 --subscriptions unix,appservers --log-level warn --keepalive-interval 5 --keepalive-warning-timeout 10
    hostname: agent3
    restart: always
    depends_on:
      - backend
     #  - backend2
     #  - backend3
+   volumes:
+     - ./volumes/agent-shared-scripts:/opt/sensu/plugins
+     - ./volumes/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt
   # agent4:
   #   image: sensu/sensu:latest
-  #   command: sensu-agent start --backend-url ws://backend2:8081 --subscriptions schedules,rbac,roundrobin,proxy --log-level warn --keepalive-interval 5 --keepalive-timeout 10
+  #   command: sensu-agent start --backend-url ws://backend2:8081 --subscriptions schedules,rbac,roundrobin,proxy --log-level warn --keepalive-interval 5 --keepalive-warning-timeout 10
   #   hostname: agent4
   #   restart: always
   #   depends_on:
@@ -110,7 +122,7 @@ services:
   #     - backend3
   # agent5:
   #   image: sensu/sensu:latest
-  #   command: sensu-agent start --backend-url ws://backend2:8081 --subscriptions schedules,rbac,roundrobin,proxy --log-level warn --keepalive-interval 5 --keepalive-timeout 10
+  #   command: sensu-agent start --backend-url ws://backend2:8081 --subscriptions schedules,rbac,roundrobin,proxy --log-level warn --keepalive-interval 5 --keepalive-warning-timeout 10
   #   hostname: agent5
   #   restart: always
   #   depends_on:
@@ -119,7 +131,7 @@ services:
   #     - backend3
   # agent6:
   #   image: sensu/sensu:latest
-  #   command: sensu-agent start --backend-url ws://backend2:8081 --subscriptions schedules,rbac,roundrobin,proxy --log-level warn --keepalive-interval 5 --keepalive-timeout 10
+  #   command: sensu-agent start --backend-url ws://backend2:8081 --subscriptions schedules,rbac,roundrobin,proxy --log-level warn --keepalive-interval 5 --keepalive-warning-timeout 10
   #   hostname: agent6
   #   restart: always
   #   depends_on:
@@ -128,7 +140,7 @@ services:
   #     - backend3
   # agent7:
   #   image: sensu/sensu:latest
-  #   command: sensu-agent start --backend-url ws://backend2:8081 --subscriptions schedules,rbac,roundrobin,proxy --log-level warn --keepalive-interval 5 --keepalive-timeout 10
+  #   command: sensu-agent start --backend-url ws://backend2:8081 --subscriptions schedules,rbac,roundrobin,proxy --log-level warn --keepalive-interval 5 --keepalive-warning-timeout 10
   #   hostname: agent7
   #   restart: always
   #   depends_on:

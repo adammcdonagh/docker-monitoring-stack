@@ -18,23 +18,26 @@ if [ ! -e "sensuctl" ]; then
   rm -r ${RELEASE_TAR} ./sensu-binary
 fi
 
+PATH=$PATH:`pwd`
+sensuctl configure --username admin --password password -n --url http://localhost:8080
+
 # Setup DB
-./sensuctl create --file postgres.yml
+sensuctl create --file postgres.yml
 
 # Add assets
-./sensuctl asset add sensu/check-disk-usage
-./sensuctl asset add sensu/system-check:0.1.1
-./sensuctl asset add sensu/sensu-sumologic-handler
+sensuctl asset add sensu/check-disk-usage
+sensuctl asset add sensu/system-check:0.1.1
+sensuctl asset add sensu/sensu-sumologic-handler
 
 # Setup test checks 
 for check_name in check-disk-usage metrics-proxy-system-check metrics-system; do
 
-  if ./sensuctl check info ${check_name} >/dev/null 2>&1; then
-    ./sensuctl check delete ${check_name} --skip-confirm
+  if sensuctl check info ${check_name} >/dev/null 2>&1; then
+    sensuctl check delete ${check_name} --skip-confirm
   fi
 done
 
-PATH=$PATH:`pwd`
+
 # Create 20 proxy agents
 # for i in `seq 1 20`; do
 #   ./sensuctl entity delete agent-proxy-${i} --skip-confirm 2>/dev/null 1>&2
@@ -46,9 +49,9 @@ cat << EOF | sensuctl create
 type: SumoLogicMetricsHandler
 api_version: pipeline/v1
 metadata:
-  name: sumologic_http_log_metrics
+  name: sumologic_metrics
 spec:
-  url: "${SUMO_METRICS_URL}"
+  url: "${SUMO_COLLECTION_URL}"
   max_connections: 10
   timeout: 10s
 EOF
@@ -58,7 +61,7 @@ cat << EOF | sensuctl create
 type: Pipeline
 api_version: core/v2
 metadata:
-  name: sensu_to_sumo
+  name: sensu_metrics_to_sumo
 spec:
   workflows:
   - name: metrics_to_sumologic
@@ -67,19 +70,49 @@ spec:
       type: EventFilter
       api_version: core/v2
     handler:
-      name: sumologic_http_log_metrics
+      name: sumologic_metrics
       type: SumoLogicMetricsHandler
       api_version: pipeline/v1
 EOF
 
+cat << EOF | sensuctl create
+---
+type: EventFilter
+api_version: core/v2
+metadata:
+  name: state_change_only
+spec:
+  action: allow
+  expressions:
+  - event.check.occurrences == 1
+  runtime_assets: []
+EOF
+
+cat << EOF | sensuctl create
+---
+type: Pipeline
+api_version: core/v2
+metadata:
+  name: sensu_checks_to_sumo
+spec:
+  workflows:
+  - name: checks_to_sumologic
+    filters:
+    - name: state_change_only
+      type: EventFilter
+      api_version: core/v2
+    handler:
+      name: checks-to-sumologic
+      type: Handler
+      api_version: core/v2
+EOF
+
 # Set up the Sumo Logic event handler
-
-
 cat << EOF | sensuctl create
 type: Handler
 api_version: core/v2
 metadata:
-  name: sumologic-logs
+  name: checks-to-sumologic
 spec:
   type: pipe
   command: >-
@@ -87,7 +120,7 @@ spec:
     --send-log
     --source-host "{{ .Entity.Name }}"
     --source-name "{{ .Check.Name }}"
-    --url "${SUMO_LOG_URL}"
+    --url "${SUMO_COLLECTION_URL}"
   runtime_assets:
   - sensu/sensu-sumologic-handler
   timeout: 10
@@ -95,7 +128,8 @@ spec:
   - is_incident
 EOF
 
-sensuctl handler create event-storage --type set --handlers sumologic-logs
+sensuctl handler create event-storage --type set --handlers sensu_checks_to_sumo
+sensuctl handler create metrics-storage --type set --handlers sensu_metrics_to_sumo
 
 # # Disk usage check
 # ./sensuctl check create check-disk-usage \
@@ -153,7 +187,7 @@ spec:
   pipelines:
   - type: Pipeline
     api_version: core/v2
-    name: sensu_to_sumo
+    name: sensu_metrics_to_sumo
   output_metric_format: prometheus_text
   output_metric_tags:
   - name: entity
@@ -184,7 +218,7 @@ spec:
   pipelines:
   - type: Pipeline
     api_version: core/v2
-    name: sensu_to_sumo
+    name: sensu_metrics_to_sumo
   output_metric_format: prometheus_text
   output_metric_tags:
   - name: entity
