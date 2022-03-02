@@ -20,7 +20,7 @@ jobs:
         with:
           checkName: "Python Lint"
           path: "./"
-          plugins: "flake8-bugbear pep8-naming flake8-commas flake8-use-fstring"
+          plugins: flake8-bugbear pep8-naming flake8-use-fstring flake8-black
           config: .flake8
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
