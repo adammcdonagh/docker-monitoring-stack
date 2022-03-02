@@ -6,7 +6,7 @@ import re
 from random import randrange
 import time
 
-#
+##
 config = dict()
 logging.info("Reading config file")
 with open("agents.json") as json_data:
