@@ -10,7 +10,7 @@ import os
 from random import randrange
 import time
 
-#
+
 def local_agent():
     os.system(
         (
