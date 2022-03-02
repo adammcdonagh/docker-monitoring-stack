@@ -1,19 +1,14 @@
 #!/usr/bin/env python3
-from asyncio import sleep
-import sys
 import argparse
 import logging
 import json
-import requests
-import threading
 import re
-import os
 from random import randrange
 import time
 
 
 config = dict()
-logging.info(f"Reading config file")
+logging.info("Reading config file")
 with open("agents.json") as json_data:
     config = json.load(json_data)
 
