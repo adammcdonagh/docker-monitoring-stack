@@ -1,9 +1,13 @@
 package com.camelot.sysaut.sensu.forwarder;
 
+import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.SQSEvent;
 import com.amazonaws.services.lambda.runtime.events.SQSEvent.SQSMessage;
+import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement;
+import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagementClientBuilder;
+import com.amazonaws.services.simplesystemsmanagement.model.GetParameterRequest;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -15,11 +19,6 @@ import java.util.Base64;
 import java.util.Base64.Decoder;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
-import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
-import software.amazon.awssdk.services.ssm.SsmClient;
-import software.amazon.lambda.powertools.parameters.ParamManager;
-import software.amazon.lambda.powertools.parameters.SSMProvider;
 
 /**
  *
@@ -30,7 +29,7 @@ public class Handler implements RequestHandler<SQSEvent, Void> {
   Gson gson = new GsonBuilder().setPrettyPrinting().create();
   Decoder decoder = Base64.getDecoder();
 
-// Netcool connection
+  // Netcool connection
   Connection connection = null;
 
   private String netcool_url = null;
@@ -41,13 +40,16 @@ public class Handler implements RequestHandler<SQSEvent, Void> {
   private long last_ssm_update = 0;
   private final long update_period = 10 * 60 * 1000L; // 10 mins
 
-  public static SSMProvider ssmProvider = ParamManager.getSsmProvider(SsmClient.builder()
-            .httpClientBuilder(UrlConnectionHttpClient.builder())
-            .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
-            .build());
-  
+//  public static SSMProvider ssmProvider = ParamManager.getSsmProvider(SsmClient.builder()
+//          .httpClientBuilder(UrlConnectionHttpClient.builder())
+//          // .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
+//          .build());
+  public static AWSSimpleSystemsManagement ssmProvider = AWSSimpleSystemsManagementClientBuilder
+          .standard()
+          .build();
+
   private static Logger LOGGER = Logger.getLogger(Handler.class.getName());
-  
+
   public Handler() {
   }
 
@@ -55,31 +57,55 @@ public class Handler implements RequestHandler<SQSEvent, Void> {
     this.netcool_url = url;
     this.netcool_user = user;
     this.netcool_password = password;
+
   }
 
   @Override
   public Void handleRequest(SQSEvent event, Context context) {
-    LOGGER.info("Handling Queue message");
-    
-    for (SQSMessage message : event.getRecords()) {
-      SensuAlert alert = gson.fromJson(new String(decoder.decode(message.getBody())), SensuAlert.class);
 
-      
-      
+    // If this is being tested via localstack, we will use environment variables for authentication
+    if (System.getenv("LOCALSTACK_HOSTNAME") != null) {
+      String endpoint = "http://" + System.getenv("LOCALSTACK_HOSTNAME") + ":" + System.getenv("EDGE_PORT");
+      LOGGER.log(Level.INFO, "Pointing at custom endpoint {0}", endpoint);
+//        ssmProvider = ParamManager.getSsmProvider(SsmClient.builder()
+//                .httpClientBuilder(UrlConnectionHttpClient.builder())
+//                .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
+//                .endpointOverride(new URI(endpoint))
+//                .build());
+//        
+      ssmProvider = AWSSimpleSystemsManagementClientBuilder
+              .standard()
+              .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(endpoint, System.getenv("AWS_REGION")))
+              .build();
+
+    }
+
+    LOGGER.info("Handling Queue message");
+
+    for (SQSMessage message : event.getRecords()) {
+      SensuAlert alert = gson.fromJson(message.getBody(), SensuAlert.class);
+
       // If the netcool host and password need populating, then get those from SSM
-      if (netcool_url == null || netcool_password == null || System.currentTimeMillis() > last_ssm_update + update_period) {
+      if (netcool_url == null || netcool_password == null
+              || System.currentTimeMillis() > last_ssm_update + update_period) {
         LOGGER.info("Getting creds from SSM");
-        
+
         // Get the SSM paths from the ENV
         this.ssm_netcool_url_path = System.getenv("SSM_NETCOOL_URL_PATH");
         this.ssm_netcool_password_path = System.getenv("SSM_NETCOOL_URL_PASSWORD");
 
         LOGGER.log(Level.INFO, "Got SSM paths: {0} & {1}", new Object[]{this.ssm_netcool_url_path, this.ssm_netcool_password_path});
-        
-        // Get URL
-        this.netcool_url = ssmProvider.withDecryption().get(this.ssm_netcool_url_path);
-        this.netcool_password = ssmProvider.withDecryption().get(this.ssm_netcool_password_path);
 
+        // Get URL       
+        GetParameterRequest parameterRequest = new GetParameterRequest();
+        parameterRequest.withName(this.ssm_netcool_url_path).setWithDecryption(true);
+        this.netcool_url = ssmProvider.getParameter(parameterRequest).getParameter().getValue();
+
+        parameterRequest.withName(this.ssm_netcool_password_path).setWithDecryption(true);
+        this.netcool_password = ssmProvider.getParameter(parameterRequest).getParameter().getValue();
+
+//        this.netcool_url = ssmProvider.withDecryption().get(this.ssm_netcool_url_path);
+//        this.netcool_password = ssmProvider.withDecryption().get(this.ssm_netcool_password_path);
         last_ssm_update = System.currentTimeMillis();
       }
 
@@ -102,26 +128,24 @@ public class Handler implements RequestHandler<SQSEvent, Void> {
     } else {
 
       int type = 1;
-      if (alert.severity == 9) {
+      if (alert.getSeverity() == 9) {
         type = 2;
       }
 
-      String sql = "insert into alerts.status "
+      String sql = String.format("insert into alerts.status "
               + "			( Identifier, Node, Agent, Manager, AlertGroup, AlertKey, Summary, Severity, FirstOccurrence, LastOccurrence, UserGroup, Type, ExpireTime, Environment ) "
               + "		values "
-              + "			('%s %s', '%s', 'Sensu', 'OMNIBUS', 'Sensu-Lambda', '%s', '%s', %s, getdate, getdate, '%s', %s, %s, '%s' )"
-                      .formatted(
-                              alert.getAlertKey(),
-                              alert.getSeverity(),
-                              alert.getNode(),
-                              alert.getAlertKey(),
-                              alert.getSummary(),
-                              alert.getSeverity(),
-                              alert.getTeam(),
-                              type,
-                              alert.getExpiry(),
-                              (alert.getEnvironment()) == null ? "" : alert.getEnvironment()
-                      );
+              + "			('%s %s', '%s', 'Sensu', 'OMNIBUS', 'Sensu-Lambda', '%s', '%s', %s, getdate, getdate, '%s', %s, %s, '%s' )",
+               alert.getAlertKey(),
+              alert.getSeverity(),
+              alert.getNode(),
+              alert.getAlertKey(),
+              alert.getSummary(),
+              alert.getSeverity(),
+              alert.getTeam(),
+              type,
+              alert.getExpiry(),
+              (alert.getEnvironment()) == null ? "" : alert.getEnvironment());
 
       Statement stmt = this.connection.createStatement();
       int rowsEffected = stmt.executeUpdate(sql);
@@ -170,7 +194,7 @@ public class Handler implements RequestHandler<SQSEvent, Void> {
     String environment;
 
     public String getSummary() {
-      return summary;
+      return summary != null ? summary : "";
     }
 
     public void setSummary(String summary) {
@@ -186,7 +210,7 @@ public class Handler implements RequestHandler<SQSEvent, Void> {
     }
 
     public String getAlertKey() {
-      return alertKey;
+      return alertKey != null ? alertKey : "";
     }
 
     public void setAlertKey(String alertKey) {
@@ -210,7 +234,7 @@ public class Handler implements RequestHandler<SQSEvent, Void> {
     }
 
     public String getTeam() {
-      return team;
+      return team != null ? team : "";
     }
 
     public void setTeam(String team) {
@@ -218,7 +242,7 @@ public class Handler implements RequestHandler<SQSEvent, Void> {
     }
 
     public String getEnvironment() {
-      return environment;
+      return environment != null ? environment : "";
     }
 
     public void setEnvironment(String environment) {
@@ -227,7 +251,8 @@ public class Handler implements RequestHandler<SQSEvent, Void> {
 
     @Override
     public String toString() {
-      return "SensuAlert{" + "summary=" + summary + ", severity=" + severity + ", alertKey=" + alertKey + ", expiry=" + expiry + ", node=" + node + ", team=" + team + ", environment=" + environment + '}';
+      return "SensuAlert{" + "summary=" + summary + ", severity=" + severity + ", alertKey=" + alertKey + ", expiry="
+              + expiry + ", node=" + node + ", team=" + team + ", environment=" + environment + '}';
     }
 
   }

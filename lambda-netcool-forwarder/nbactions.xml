@@ -12,7 +12,7 @@
             <properties>
                 <exec.vmArgs></exec.vmArgs>
                 <exec.args>${exec.vmArgs} -classpath %classpath ${exec.mainClass} ${exec.appArgs}</exec.args>
-                <exec.appArgs>eyJub2RlIjogInZ3YmlyYXAwMDQiLCAiYWxlcnRLZXkiOiAidndiaXJhcDAwNF9GU1VzYWdlX0MiLCAic3VtbWFyeSI6ICJGaWxlc3lzdGVtIHVzYWdlIG9uIEMgPiA4MCUgKDkwLjAzJSkiLCAic2V2ZXJpdHkiOiAiOSIsICJ0ZWFtIjogIldpbnRlbCIsICJleHBpcnkiOiBudWxsLCAiZW52aXJvbm1lbnQiOiBudWxsfQo= jdbc:sybase:Tds:vlmgp013.prod.camelot:4100 root t3rm1nal</exec.appArgs>
+                <exec.appArgs>eyJub2RlIjogInZ3YmlyYXAwMDQiLCAiYWxlcnRLZXkiOiAidndiaXJhcDAwNF9GU1VzYWdlX0QiLCAic3VtbWFyeSI6ICJGaWxlc3lzdGVtIHVzYWdlIEQgaXMgb2siLCAic2V2ZXJpdHkiOiAiOSIsICJ0ZWFtIjogIldpbnRlbCIsICJleHBpcnkiOiBudWxsLCAiZW52aXJvbm1lbnQiOiBudWxsfQo= jdbc:sybase:Tds:vlmgp013.prod.camelot:4100 root t3rm1nal</exec.appArgs>
                 <exec.mainClass>com.camelot.sysaut.sensu.forwarder.Handler</exec.mainClass>
                 <exec.executable>java</exec.executable>
             </properties>
@@ -29,7 +29,7 @@
             <properties>
                 <exec.vmArgs>-agentlib:jdwp=transport=dt_socket,server=n,address=${jpda.address}</exec.vmArgs>
                 <exec.args>${exec.vmArgs} -classpath %classpath ${exec.mainClass} ${exec.appArgs}</exec.args>
-                <exec.appArgs>eyJub2RlIjogInZ3YmlyYXAwMDQiLCAiYWxlcnRLZXkiOiAidndiaXJhcDAwNF9GU1VzYWdlX0MiLCAic3VtbWFyeSI6ICJGaWxlc3lzdGVtIHVzYWdlIG9uIEMgPiA4MCUgKDkwLjAzJSkiLCAic2V2ZXJpdHkiOiAiOSIsICJ0ZWFtIjogIldpbnRlbCIsICJleHBpcnkiOiBudWxsLCAiZW52aXJvbm1lbnQiOiBudWxsfQo= jdbc:sybase:Tds:vlmgp013.prod.camelot:4100 root t3rm1nal</exec.appArgs>
+                <exec.appArgs>eyJub2RlIjogInZ3YmlyYXAwMDQiLCAiYWxlcnRLZXkiOiAidndiaXJhcDAwNF9GU1VzYWdlX0QiLCAic3VtbWFyeSI6ICJGaWxlc3lzdGVtIHVzYWdlIEQgaXMgb2siLCAic2V2ZXJpdHkiOiAiOSIsICJ0ZWFtIjogIldpbnRlbCIsICJleHBpcnkiOiBudWxsLCAiZW52aXJvbm1lbnQiOiBudWxsfQo= jdbc:sybase:Tds:vlmgp013.prod.camelot:4100 root t3rm1nal</exec.appArgs>
                 <exec.mainClass>${packageClassName}</exec.mainClass>
                 <exec.executable>java</exec.executable>
                 <jpda.listen>true</jpda.listen>
@@ -49,7 +49,7 @@
                 <exec.args>${exec.vmArgs} -classpath %classpath ${exec.mainClass} ${exec.appArgs}</exec.args>
                 <exec.mainClass>${packageClassName}</exec.mainClass>
                 <exec.executable>java</exec.executable>
-                <exec.appArgs>eyJub2RlIjogInZ3YmlyYXAwMDQiLCAiYWxlcnRLZXkiOiAidndiaXJhcDAwNF9GU1VzYWdlX0MiLCAic3VtbWFyeSI6ICJGaWxlc3lzdGVtIHVzYWdlIG9uIEMgPiA4MCUgKDkwLjAzJSkiLCAic2V2ZXJpdHkiOiAiOSIsICJ0ZWFtIjogIldpbnRlbCIsICJleHBpcnkiOiBudWxsLCAiZW52aXJvbm1lbnQiOiBudWxsfQo= jdbc:sybase:Tds:vlmgp013.prod.camelot:4100 root t3rm1nal</exec.appArgs>
+                <exec.appArgs>eyJub2RlIjogInZ3YmlyYXAwMDQiLCAiYWxlcnRLZXkiOiAidndiaXJhcDAwNF9GU1VzYWdlX0QiLCAic3VtbWFyeSI6ICJGaWxlc3lzdGVtIHVzYWdlIEQgaXMgb2siLCAic2V2ZXJpdHkiOiAiOSIsICJ0ZWFtIjogIldpbnRlbCIsICJleHBpcnkiOiBudWxsLCAiZW52aXJvbm1lbnQiOiBudWxsfQo= jdbc:sybase:Tds:vlmgp013.prod.camelot:4100 root t3rm1nal</exec.appArgs>
             </properties>
         </action>
     </actions>
